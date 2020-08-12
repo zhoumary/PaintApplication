@@ -23,6 +23,11 @@
         android:title="Circle" />
 
     <item
+        android:id="@+id/saveAs"
+        app:showAsAction="never"
+        android:title="Save As" />
+
+    <item
         android:id="@+id/clear"
         app:showAsAction="never"
         android:title="Clear" />

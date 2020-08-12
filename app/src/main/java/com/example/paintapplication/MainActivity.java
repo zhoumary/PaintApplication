@@ -3,6 +3,7 @@ package com.example.paintapplication;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.Menu;
@@ -44,7 +45,11 @@ public class MainActivity extends AppCompatActivity {
                 paintView.blur();
                 return true;
             case R.id.circle:
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
                 paintView.circle();
+                return true;
+            case R.id.saveAs:
+                paintView.saveAs();
                 return true;
             case R.id.clear:
                 paintView.clear();

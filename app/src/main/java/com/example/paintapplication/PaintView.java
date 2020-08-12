@@ -1,6 +1,9 @@
 package com.example.paintapplication;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BlurMaskFilter;
@@ -59,6 +62,7 @@ public class PaintView extends View {
     private Path mPath;
     private Paint mPaint;
     private ArrayList<FingerPath> paths = new ArrayList<>();
+    private ArrayList<Path> testPaths = new ArrayList<>();
     private int currentColor;
     private int backgroundColor = DEFAULT_BG_COLOR;
     private int strokeWidth;
@@ -98,6 +102,7 @@ public class PaintView extends View {
 
         mBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         mCanvas = new Canvas(mBitmap);
+//        mCanvas = new Canvas();
 
         currentColor = DEFAULT_COLOR;
         strokeWidth = BRUSH_SIZE;
@@ -127,10 +132,18 @@ public class PaintView extends View {
         circle = true;
     }
 
+    public void saveAs() {
+        // save canvas as picture in the phone album
+        
+    }
+
     public void clear() {
         mCanvas.drawColor(backgroundColor, PorterDuff.Mode.CLEAR);
-        paths.clear();
-        normal();
+//        paths.clear();
+        pointsDown.clear();
+        pointsUp.clear();
+        circle();
+        currentContact = -1;
         invalidate();
     }
 
@@ -138,19 +151,24 @@ public class PaintView extends View {
     protected void onDraw(Canvas canvas) {
         canvas.save();
 
+        int orientation = getResources().getConfiguration().orientation;
+        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            circle = true;
+        }
+
         if (circle) {
             for (int i = 0; i <= currentContact; i++)
             {
                 // draw footer
-                Bitmap imageBitmap = ((BitmapDrawable) mResources.getDrawable(R.drawable.footer)).getBitmap();
-                canvas.drawBitmap(imageBitmap, pointsUp.get(i).x, pointsUp.get(i).y, mPaint);
+//                Bitmap imageBitmap = ((BitmapDrawable) mResources.getDrawable(R.drawable.footer)).getBitmap();
+//                canvas.drawBitmap(imageBitmap, pointsUp.get(i).x, pointsUp.get(i).y, mPaint);
                 // draw line
 //                canvas.drawLine(pointsUp.get(i).x, pointsUp.get(i).y, pointsDown.get(i).x, pointsDown.get(i).y, mPaint);
 //              // draw circle
 //                float distance = (float) Math.sqrt(Math.pow(pointsUp.get(i).x - pointsDown.get(i).x, 2) + Math.pow(pointsUp.get(i).y - pointsDown.get(i).y, 2));
 //                canvas.drawCircle(pointsUp.get(i).x, pointsUp.get(i).y, distance, mPaint);
 //              // draw rectangle
-//                canvas.drawRect(pointsUp.get(i).x, pointsUp.get(i).y, pointsDown.get(i).x, pointsDown.get(i).y, mPaint);
+                canvas.drawRect(pointsUp.get(i).x, pointsUp.get(i).y, pointsDown.get(i).x, pointsDown.get(i).y, mPaint);
             }
 
         } else {
@@ -207,11 +225,15 @@ public class PaintView extends View {
         float x = event.getX();
         float y = event.getY();
 
+
         mPath = new Path();
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
 //                touchStart(x, y);
+//                testPaths.add(mPath);
+//                mPath.reset();
+//                mPath.moveTo(x, y);
                 currentContact++;
                 pointsDown.add(new Point());
                 pointsDown.get(currentContact).x = x;
@@ -220,6 +242,7 @@ public class PaintView extends View {
                 break;
             case MotionEvent.ACTION_MOVE:
 //                touchMove(x, y);
+//                mPath.quadTo(mX, mY, (x + mX) / 2, (y + mY) /2);
                 pointsUp.add(new Point());
                 pointsUp.get(currentContact).x = x;
                 pointsUp.get(currentContact).y = y;
@@ -229,6 +252,7 @@ public class PaintView extends View {
 //                touchUp(x, y);
                 mX = x;
                 mY = y;
+//                mPath.lineTo(x, y);
                 pointsUp.add(new Point());
                 pointsUp.get(currentContact).x = x;
                 pointsUp.get(currentContact).y = y;
