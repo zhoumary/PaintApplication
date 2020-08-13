@@ -16,8 +16,9 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/paintView"
-        app:srcCompat="@drawable/ic_launcher_background"
-        tools:ignore="VectorDrawableCompat" />
+        android:src="@drawable/ic_launcher_background">
+
+    </ImageView>
 
     <com.example.paintapplication.PaintView
         android:id="@+id/paintView"

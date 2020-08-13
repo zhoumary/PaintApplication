@@ -1,8 +1,7 @@
 package com.example.paintapplication;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.pm.ActivityInfo;
+import android.content.ContextWrapper;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -14,15 +13,22 @@ import android.graphics.MaskFilter;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Picture;
+import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
-import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.os.Environment;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ImageView;
+import android.provider.MediaStore;
 
 import androidx.annotation.Nullable;
 
+import java.io.File;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,17 +58,14 @@ public class PaintView extends View {
     public static final int DEFAULT_BG_COLOR = Color.TRANSPARENT;
     private static final float TOUCH_TOLERANCE = 4;
     private float mX, mY;
-    private float oX, oY;
     private ArrayList<Line> lines = new ArrayList<Line>();
     List<Point> pointsDown = new ArrayList<Point>();
     List<Point> pointsUp = new ArrayList<Point>();
     int currentContact = -1;
     private Resources mResources;
-    private Picture mPicture = new Picture();
     private Path mPath;
     private Paint mPaint;
     private ArrayList<FingerPath> paths = new ArrayList<>();
-    private ArrayList<Path> testPaths = new ArrayList<>();
     private int currentColor;
     private int backgroundColor = DEFAULT_BG_COLOR;
     private int strokeWidth;
@@ -132,14 +135,82 @@ public class PaintView extends View {
         circle = true;
     }
 
-    public void saveAs() {
+    public static Bitmap drawableToBitmap(Drawable drawable) {
+
+        int w = drawable.getIntrinsicWidth();
+        int h = drawable.getIntrinsicHeight();
+        System.out.println("Drawable转Bitmap");
+        Bitmap.Config config =
+                drawable.getOpacity() != PixelFormat.OPAQUE ? Bitmap.Config.ARGB_8888
+                        : Bitmap.Config.RGB_565;
+        Bitmap bitmap = Bitmap.createBitmap(w, h, config);
+        //注意，下面三行代码要用到，否则在View或者SurfaceView里的canvas.drawBitmap会看不到图
+        Canvas canvas = new Canvas(bitmap);
+        drawable.setBounds(0, 0, w, h);
+        drawable.draw(canvas);
+
+        return bitmap;
+    }
+
+    public void saveAs(ImageView imageView, Context context) {
         // save canvas as picture in the phone album
-        
+        OutputStream outputStream;
+//        Resources res = gerResource();
+//        Drawable testdrawable = res.getDrawable(imageView.getDrawable());
+//        BitmapDrawable drawable = (BitmapDrawable) imageView.getDrawable();
+//        Bitmap bitmap = drawable.getBitmap();
+        Bitmap bitmap = drawableToBitmap(imageView.getDrawable());
+
+        ContextWrapper cw = new ContextWrapper(context);
+        // path to /data/data/yourapp/app_data/imageDir
+        File directory = cw.getDir("imageDir", Context.MODE_PRIVATE);
+        // path to sdcard
+        File root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+//        File filepath = Environment.getExternalStorageDirectory();
+//        File dir = new File(filepath.getAbsolutePath() + "/Demo/");
+//        dir.mkdir();
+
+        File dir = new File(context.getFilesDir(), "mydir");
+        if(!dir.exists()){
+            dir.mkdir();
+        }
+//        File file = new File(dir, System.currentTimeMillis()+".jpg");
+//        File file = new File(root.getAbsolutePath() + "/DCIM/Camera/" + System.currentTimeMillis()+".jpg");
+//        try {
+//            outputStream = new FileOutputStream(file);
+//
+//            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+//            try {
+//                outputStream.flush();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//            try {
+//                outputStream.close();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        }
+
+        // Save image to gallery
+        String savedImageURL = MediaStore.Images.Media.insertImage(
+                context.getContentResolver(),
+                bitmap,
+                "Test01",
+                "Image of Test01"
+        );
+
+        // Parse the gallery image url to uri
+        Uri savedImageURI = Uri.parse(savedImageURL);
+
+        // Display the saved image to ImageView
+        imageView.setImageURI(savedImageURI);
     }
 
     public void clear() {
         mCanvas.drawColor(backgroundColor, PorterDuff.Mode.CLEAR);
-//        paths.clear();
         pointsDown.clear();
         pointsUp.clear();
         circle();
@@ -174,6 +245,8 @@ public class PaintView extends View {
         } else {
             mCanvas.drawColor(backgroundColor);
         }
+
+        mCanvas = canvas;
 
 
         for (FingerPath fp : paths) {
